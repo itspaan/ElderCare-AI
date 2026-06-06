@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ElderCare AI - Your Health & Daily Assistant</title>
+    <!-- Google Fonts for modern, highly readable typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary: #0d9488; /* Soothing Teal */
+        --primary-dark: #0f766e;
+        --primary-light: #ccfbf1;
+        --secondary: #6366f1; /* Gentle Indigo */
+        --background-gradient: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 50%, #f5f3ff 100%);
+        --text-main: #1f2937;
+        --text-muted: #4b5563;
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --shadow: 0 10px 30px -10px rgba(13, 148, 136, 0.15);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--background-gradient);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 24px;
+        width: 100%;
+        max-width: 1100px;
+        height: 85vh;
+        min-height: 600px;
+      }
+
+      /* Sidebar Dashboard Panel */
+      .sidebar {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--shadow);
+      }
+
+      .app-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .app-logo {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+      }
+
+      .brand-text h1 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--primary-dark);
+      }
+
+      .brand-text p {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .features-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 20px;
+        flex-grow: 1;
+      }
+
+      .feature-item {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        padding: 16px;
+        border-radius: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .feature-item:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .feature-icon {
+        font-size: 24px;
+      }
+
+      .feature-info h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text-main);
+      }
+
+      .feature-info p {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.4;
+      }
+
+      .status-pulse {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--primary-dark);
+        background: var(--primary-light);
+        padding: 8px 16px;
+        border-radius: 20px;
+        align-self: flex-start;
+      }
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes pulse {
+        0% { transform: scale(0.9); opacity: 0.6; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(0.9); opacity: 0.6; }
+      }
+
+      /* Chat Area */
+      .chat-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .chat-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .chat-header-info h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .chat-header-info p {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      /* Chat Messages Scrollbox */
+      .chat-box {
+        flex-grow: 1;
+        padding: 30px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        scroll-behavior: smooth;
+      }
+
+      /* Scrollbar Styling */
+      .chat-box::-webkit-scrollbar {
+        width: 6px;
+      }
+      .chat-box::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .chat-box::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+      }
+
+      .message {
+        max-width: 75%;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease forwards;
+      }
+
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .message-content {
+        padding: 16px 20px;
+        border-radius: 20px;
+        font-size: 15px;
+        line-height: 1.5;
+        position: relative;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+      }
+
+      .message.user {
+        align-self: flex-end;
+      }
+
+      .message.user .message-content {
+        background: linear-gradient(135deg, var(--secondary) 0%, #4f46e5 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.ai {
+        align-self: flex-start;
+      }
+
+      .message.ai .message-content {
+        background: white;
+        color: var(--text-main);
+        border-bottom-left-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+      }
+
+      .message-meta {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 4px;
+        margin-left: 6px;
+      }
+
+      .message.user .message-meta {
+        align-self: flex-end;
+        margin-right: 6px;
+      }
+
+      /* Symptom tag container in advice */
+      .advice-tag {
+        display: inline-block;
+        padding: 3px 8px;
+        background: #fef3c7;
+        color: #d97706;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 6px;
+      }
+
+      /* Suggested Query Buttons */
+      .suggestions {
+        display: flex;
+        gap: 10px;
+        padding: 0 30px;
+        overflow-x: auto;
+        white-space: nowrap;
+        margin-bottom: 12px;
+      }
+
+      .suggestions::-webkit-scrollbar {
+        display: none; /* Hide suggestion scrollbar */
+      }
+
+      .suggest-btn {
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 10px 16px;
+        border-radius: 20px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+      }
+
+      .suggest-btn:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary-dark);
+      }
+
+      /* System actions status log */
+      .system-log {
+        align-self: center;
+        background: rgba(0, 0, 0, 0.04);
+        color: var(--text-muted);
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* Input Area Styling */
+      .chat-input-area {
+        padding: 20px 30px 30px;
+        background: rgba(255, 255, 255, 0.4);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .input-container {
+        display: flex;
+        gap: 12px;
+        background: white;
+        border: 1.5px solid rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        padding: 6px 6px 6px 20px;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        transition: border-color 0.3s ease;
+      }
+
+      .input-container:focus-within {
+        border-color: var(--primary);
+      }
+
+      .chat-input {
+        flex-grow: 1;
+        border: none;
+        outline: none;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 15px;
+        color: var(--text-main);
+        padding: 10px 0;
+      }
+
+      .chat-input::placeholder {
+        color: #9ca3af;
+      }
+
+      .send-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        outline: none;
+        padding: 12px 24px;
+        border-radius: 14px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .send-btn:hover {
+        background: var(--primary-dark);
+      }
+
+      .send-btn:active {
+        transform: scale(0.97);
+      }
+
+      /* Voice and Image Action Buttons */
+      .action-btn {
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        color: var(--text-muted);
+        transition: background 0.2s, color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .action-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--primary);
+      }
+
+      .action-btn.active {
+        color: #ef4444; /* red for recording */
+      }
+
+      .image-preview-container {
+        display: none;
+        padding: 10px 20px 0;
+        background: rgba(255, 255, 255, 0.4);
+      }
+      
+      .image-preview {
+        max-height: 80px;
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.1);
+        position: relative;
+        display: inline-block;
+      }
+      
+      .image-preview img {
+        max-height: 80px;
+        border-radius: 10px;
+      }
+      
+      .image-preview .remove-img {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        border: none;
+      }
+
+      /* Loader Animation for typing status */
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 4px 0;
+      }
+
+      .typing-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+        opacity: 0.4;
+      }
+
+      .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+      .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+      @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+      }
+
+      /* Mobile Layout Adaptation */
+      @media (max-width: 768px) {
+        .container {
+          grid-template-columns: 1fr;
+          height: auto;
+          min-height: 100vh;
+        }
+
+        .sidebar {
+          display: none; /* Hide sidebar on mobile screen to focus on chat */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Left Dashboard / Status Panel -->
+      <div class="sidebar">
+        <div>
+          <div class="app-brand">
+            <div class="app-logo">🏥</div>
+            <div class="brand-text">
+              <h1>ElderCare AI</h1>
+              <p>Companion & Health Advisor</p>
+            </div>
+          </div>
+          
+          <div class="features-list">
+            <div class="feature-item">
+              <span class="feature-icon">🧠</span>
+              <div class="feature-info">
+                <h3>Machine Learning System</h3>
+                <p>Analyzes your symptoms using Random Forest and gives fast advice.</p>
+              </div>
+            </div>
+            
+            <div class="feature-item">
+              <span class="feature-icon">⏰</span>
+              <div class="feature-info">
+                <h3>Daily Reminders</h3>
+                <p>Set medication or task alarms simply by speaking to the assistant.</p>
+              </div>
+            </div>
+            
+            <div class="feature-item">
+              <span class="feature-icon">📞</span>
+              <div class="feature-info">
+                <h3>Emergency Dial</h3>
+                <p>Instantly asks for help or calls your loved ones if you feel unwell.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-pulse">
+          <div class="pulse-dot"></div>
+          Elderly Care Core Active
+        </div>
+      </div>
+
+      <!-- Right Chat Panel -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <h2>Your Virtual Companion</h2>
+            <p>Tell me how you are feeling or ask for help</p>
+          </div>
+        </div>
+
+        <!-- Scrollable Messages Container -->
+        <div id="chat-box" class="chat-box">
+          <div class="message ai">
+            <div class="message-content" style="position: relative; padding-right: 40px;">
+              <button id="msg-btn-initial" class="action-btn" data-text="Hello! I am your companion. How can I help you today? If you feel unwell or have any symptoms, please let me know." style="position: absolute; top: 12px; right: 12px; padding: 4px; font-size: 16px; width: 24px; height: 24px;" onclick="toggleMessageTTS('msg-btn-initial')" title="Toggle Audio">🔊</button>
+              <div>Hello! I am your companion. How can I help you today? If you feel unwell or have any symptoms, please let me know.</div>
+            </div>
+            <div class="message-meta">Companion</div>
+          </div>
+        </div>
+
+        <!-- Quick Starters -->
+        <div class="suggestions">
+          <button class="suggest-btn" onclick="useStarter('I am 72 years old. My systolic BP is 155, blood sugar is 98, and I feel fatigue.')">❤️ Check Vitals (BP/Fatigue)</button>
+          <button class="suggest-btn" onclick="useStarter('I am 68 years old. My blood sugar is 190, BP is 120, and I have joint pain.')">🍭 Check Vitals (Sugar/Joints)</button>
+          <button class="suggest-btn" onclick="useStarter('Please set a reminder for my medicine at 9 AM.')">⏰ Set Medicine Reminder</button>
+          <button class="suggest-btn" onclick="useStarter('Help me call my emergency contact.')">📞 Call Emergency</button>
+        </div>
+
+        <!-- Message Input -->
+        <div class="image-preview-container" id="image-preview-container">
+          <div class="image-preview">
+            <img id="image-preview-img" src="" alt="Preview" />
+            <button class="remove-img" onclick="removeImage()">✕</button>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="input-container">
+            <button class="action-btn" id="mic-btn" onclick="toggleRecording()" title="Voice Input">🎙️</button>
+            <button class="action-btn" onclick="document.getElementById('image-upload').click()" title="Upload Image (Max 2MB)">📎</button>
+            <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+            <input
+              type="text"
+              id="user-input"
+              class="chat-input"
+              placeholder="Type your message here..."
+              onkeydown="if(event.key === 'Enter') sendMessage()"
+            />
+            <button onclick="sendMessage()" class="send-btn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const chatBox = document.getElementById("chat-box");
+      const inputField = document.getElementById("user-input");
+
+      function formatTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function useStarter(text) {
+        inputField.value = text;
+        sendMessage();
+      }
+
+      let selectedImageBase64 = null;
+      let selectedImageMime = null;
+      let recognition = null;
+      let isRecording = false;
+
+      // Initialize Speech Recognition
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onstart = function() {
+          isRecording = true;
+          document.getElementById('mic-btn').classList.add('active');
+        };
+        
+        recognition.onresult = function(event) {
+          const transcript = event.results[0][0].transcript;
+          inputField.value += (inputField.value ? ' ' : '') + transcript;
+        };
+        
+        recognition.onerror = function(event) {
+          console.error("Speech recognition error", event.error);
+          isRecording = false;
+          document.getElementById('mic-btn').classList.remove('active');
+        };
+        
+        recognition.onend = function() {
+          isRecording = false;
+          document.getElementById('mic-btn').classList.remove('active');
+        };
+      } else {
+        console.warn("Speech recognition not supported in this browser.");
+      }
+
+      function toggleRecording() {
+        if (!recognition) return alert("Your browser doesn't support speech recognition.");
+        if (isRecording) {
+          recognition.stop();
+        } else {
+          recognition.start();
+        }
+      }
+      
+      let currentPlayingBtnId = null;
+
+      function toggleMessageTTS(btnId) {
+        if (!('speechSynthesis' in window)) return;
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        const text = btn.getAttribute('data-text');
+        
+        if (currentPlayingBtnId === btnId && window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+          btn.innerText = '🔊';
+          currentPlayingBtnId = null;
+          return;
+        }
+
+        window.speechSynthesis.cancel();
+        
+        if (currentPlayingBtnId) {
+          const oldBtn = document.getElementById(currentPlayingBtnId);
+          if (oldBtn) oldBtn.innerText = '🔊';
+        }
+
+        currentPlayingBtnId = btnId;
+        btn.innerText = '🔇';
+
+        const cleanText = text.replace(/<[^>]*>?/gm, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        
+        utterance.onend = function() {
+          if (currentPlayingBtnId === btnId) {
+            btn.innerText = '🔊';
+            currentPlayingBtnId = null;
+          }
+        };
+
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function handleImageSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 2 * 1024 * 1024) {
+          alert("Image is too large. Max size is 2MB.");
+          event.target.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          selectedImageBase64 = e.target.result;
+          selectedImageMime = file.type;
+          
+          document.getElementById('image-preview-img').src = selectedImageBase64;
+          document.getElementById('image-preview-container').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+      
+      function removeImage() {
+        selectedImageBase64 = null;
+        selectedImageMime = null;
+        document.getElementById('image-upload').value = '';
+        document.getElementById('image-preview-container').style.display = 'none';
+      }
+
+      async function sendMessage() {
+        const message = inputField.value.trim();
+        if (!message && !selectedImageBase64) return;
+
+        const currentMessage = message;
+        const currentImgBase64 = selectedImageBase64;
+        const currentImgMime = selectedImageMime;
+
+        // Display user message
+        const now = new Date();
+        let userHtml = `<div class="message user"><div class="message-content">`;
+        if (currentImgBase64) {
+           userHtml += `<img src="${currentImgBase64}" style="max-width: 200px; border-radius: 8px; margin-bottom: 8px; display: block;">`;
+        }
+        if (currentMessage) {
+           userHtml += `${escapeHTML(currentMessage)}`;
+        }
+        userHtml += `</div><div class="message-meta">You at ${formatTime(now)}</div></div>`;
+        chatBox.innerHTML += userHtml;
+        
+        inputField.value = "";
+        removeImage();
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Display typing indicator
+        const typingId = "typing-" + Date.now();
+        chatBox.innerHTML += `
+          <div class="message ai" id="${typingId}">
+            <div class="message-content">
+              <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+            <div class="message-meta">Companion</div>
+          </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+          // Send request to FastAPI backend
+          const requestBody = { message: currentMessage };
+          if (currentImgBase64) {
+             requestBody.image = currentImgBase64;
+             requestBody.image_mime = currentImgMime;
+          }
+
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody),
+          });
+          const data = await response.json();
+
+          // Remove typing indicator
+          const indicator = document.getElementById(typingId);
+          if (indicator) indicator.remove();
+
+          // Format linebreaks in AI reply
+          const formattedReply = escapeHTML(data.reply).replace(/\n/g, '<br>');
+
+          let logHtml = "";
+          const lowerReply = formattedReply.toLowerCase();
+          if (lowerReply.includes("hypertension") || lowerReply.includes("diabetes") || lowerReply.includes("osteoarthritis") || lowerReply.includes("dementia") || lowerReply.includes("healthy")) {
+            logHtml = `<div class="system-log">⚙️ Machine Learning Model executed prediction successfully</div>`;
+          } else if (formattedReply.toLowerCase().includes("reminder set") || formattedReply.toLowerCase().includes("reminder for")) {
+            logHtml = `<div class="system-log">⏰ System task created: Medicine Reminder set</div>`;
+          } else if (formattedReply.toLowerCase().includes("calling")) {
+            logHtml = `<div class="system-log">📞 System action: Initialized Emergency Contact line</div>`;
+          }
+
+          if (logHtml) {
+            chatBox.innerHTML += logHtml;
+          }
+
+          // Add AI message to conversation
+          const msgId = "msg-btn-" + Date.now();
+
+          chatBox.innerHTML += `
+            <div class="message ai">
+              <div class="message-content" style="position: relative; padding-right: 40px;">
+                <button id="${msgId}" class="action-btn" data-text="${escapeHTML(data.reply)}" style="position: absolute; top: 12px; right: 12px; padding: 4px; font-size: 16px; width: 24px; height: 24px;" onclick="toggleMessageTTS('${msgId}')" title="Toggle Audio">🔊</button>
+                <div>${formattedReply}</div>
+              </div>
+              <div class="message-meta">Companion at ${formatTime(new Date())}</div>
+            </div>
+          `;
+          chatBox.scrollTop = chatBox.scrollHeight;
+
+        } catch (error) {
+          console.error("Error communicating with chatbot API:", error);
+          const indicator = document.getElementById(typingId);
+          if (indicator) indicator.remove();
+
+          chatBox.innerHTML += `
+            <div class="message ai">
+              <div class="message-content">I'm sorry, I encountered a communication issue. Please check your network and try again.</div>
+              <div class="message-meta">Companion</div>
+            </div>
+          `;
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+      }
+
+      function escapeHTML(str) {
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+    </script>
+  </body>
+</html>
