@@ -38,40 +38,49 @@ def _init_db():
         )
         conn.commit()
 
-        # Migrate data from JSON if it exists
-        if os.path.exists(JSON_PATH):
+        # One-time migration from the legacy reminders.json.
+        #
+        # NOTE: reminders.json is reused as a live export by _sync_to_json(),
+        # so its mere existence is NOT a reliable "needs migration" signal —
+        # it gets recreated after every add/delete. Gate the migration on the
+        # DB table being empty instead, otherwise every restart would re-import
+        # (and duplicate) all reminders and then crash on the .bak rename.
+        cursor.execute("SELECT COUNT(*) FROM reminders")
+        table_is_empty = cursor.fetchone()[0] == 0
+
+        if table_is_empty and os.path.exists(JSON_PATH):
             try:
-                print("\n[SYSTEM] -> Migrating existing reminders from reminders.json to SQLite database...")
                 with open(JSON_PATH, "r", encoding="utf-8") as f:
                     old_reminders = json.load(f)
-                
-                for r in old_reminders:
-                    cursor.execute(
-                        """
-                        INSERT INTO reminders (medicine_name, time, created_at, active)
-                        VALUES (?, ?, ?, ?)
-                        """,
-                        (
-                            r["medicine_name"],
-                            r["time"],
-                            r.get("created_at", datetime.now().isoformat()),
-                            1 if r.get("active", True) else 0
+
+                if old_reminders:
+                    print("\n[SYSTEM] -> Migrating existing reminders from reminders.json to SQLite database...")
+                    for r in old_reminders:
+                        cursor.execute(
+                            """
+                            INSERT INTO reminders (medicine_name, time, created_at, active)
+                            VALUES (?, ?, ?, ?)
+                            """,
+                            (
+                                r["medicine_name"],
+                                r["time"],
+                                r.get("created_at", datetime.now().isoformat()),
+                                1 if r.get("active", True) else 0
+                            )
                         )
-                    )
-                conn.commit()
-                
-                # Backup and remove the old json file
-                bak_path = JSON_PATH + ".bak"
-                os.rename(JSON_PATH, bak_path)
-                print(f"[SYSTEM] -> Migration completed. Backup saved at {bak_path}")
+                    conn.commit()
+
+                    # Keep a one-time backup of the legacy file. os.replace
+                    # overwrites an existing .bak atomically (os.rename does not
+                    # on Windows), then re-export so the live JSON matches the DB.
+                    os.replace(JSON_PATH, JSON_PATH + ".bak")
+                    print(f"[SYSTEM] -> Migration completed. Backup saved at {JSON_PATH}.bak")
+                    _sync_to_json()
             except Exception as e:
                 print(f"[SYSTEM] -> Error migrating data from JSON: {e}")
     finally:
         conn.close()
 
-
-# Run DB initialization when module is imported
-_init_db()
 
 def _sync_to_json():
     """Sync all reminders from the SQLite database to a JSON file in real-time."""
@@ -206,3 +215,8 @@ def delete_reminder(medicine_name: str) -> str:
         return f"Error: Failed to delete reminder. Details: {e}"
     finally:
         conn.close()
+
+
+# Run DB initialization when the module is imported (defined last so it can
+# reference _sync_to_json during a one-time migration).
+_init_db()

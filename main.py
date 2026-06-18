@@ -1,13 +1,17 @@
 import os
 import json
-from fastapi import FastAPI, Request
+import base64
+import logging
+from typing import Optional
+
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+
 from core.agent import chat_with_agent, model_data
 from tools.reminders import JSON_PATH as REMINDERS_JSON_PATH
 from tools.image_storage import get_all_images, IMAGES_DIR
-import logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -15,18 +19,13 @@ logger = logging.getLogger("ElderCareAPI")
 
 app = FastAPI(title="ElderCare Agent API")
 
-@app.get("/api/health")
-async def health_check():
-    return {"status": "active", "model_loaded": model_data is not None}
-
-from typing import Optional
-import base64
 
 # Format data yang akan diterima dari website
 class ChatRequest(BaseModel):
     message: str
     image: Optional[str] = None
     image_mime: Optional[str] = None
+
 
 # Menyajikan folder 'static' untuk HTML/CSS/JS
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -35,9 +34,15 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 os.makedirs(IMAGES_DIR, exist_ok=True)
 app.mount("/storage/images", StaticFiles(directory=IMAGES_DIR), name="stored_images")
 
+
 @app.get("/")
 async def serve_ui():
     return FileResponse("static/index.html")
+
+
+@app.get("/api/health")
+async def health_check():
+    return {"status": "active", "model_loaded": model_data is not None}
 
 @app.post("/api/chat")
 async def chat_endpoint(request: ChatRequest):
