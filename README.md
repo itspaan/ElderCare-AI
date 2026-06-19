@@ -1,6 +1,6 @@
 # ElderCare AI
 
-A conversational **Machine Learning + LLM** health companion for elderly users and caregivers. A Google Gemini agent screens for likely conditions (Hypertension, Diabetes, Osteoarthritis, Dementia, Healthy) from basic vitals, manages medicine reminders, calls an emergency contact, and analyzes uploaded images — replying in the user's own language with short, voice-friendly sentences.
+A conversational **Machine Learning + LLM** health companion for **Taiwan's elderly** and their caregivers. A Google Gemini agent screens for likely conditions (Hypertension, Diabetes, Osteoarthritis, Dementia, Healthy) from basic vitals, manages medicine reminders, calls an emergency contact, and analyzes uploaded images. The interface is **bilingual — English and Traditional Chinese (zh-TW)** — with a one-tap language switch, and the agent replies in the user's language with short, voice-friendly sentences.
 
 > ⚠️ **Screening and care aid, not a medical diagnosis.** Always consult a healthcare professional.
 

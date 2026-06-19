@@ -6,11 +6,11 @@ This file gives Claude Code the context it needs to work on this project. Read i
 
 ## Project: ElderCare AI
 
-A conversational **Machine Learning + LLM** health companion for elderly users and caregivers. A Google Gemini agent (with function calling) holds a natural, voice-friendly conversation and uses tools to:
+A conversational **Machine Learning + LLM** health companion for **Taiwan's elderly** and their caregivers, built around the common chronic conditions of Taiwan's ageing population. A Google Gemini agent (with function calling) holds a natural, voice-friendly conversation and uses tools to:
 
 1. **Screen for a likely condition** (Hypertension, Diabetes, Osteoarthritis, Dementia, Healthy) from basic vitals/symptoms, via a Random Forest model.
 2. **Manage daily care** — set/list/delete medicine reminders, call an emergency contact, store and analyze uploaded images.
-3. **Reply in the user's own language**, in short sentences suited for text-to-speech.
+3. **Work bilingually** — the UI switches between English and Traditional Chinese (zh-TW), and the agent replies in the user's own language, in short sentences suited for text-to-speech.
 
 See `docs/PRD.md` for full product requirements.
 
@@ -101,6 +101,7 @@ AgentAi/
 - Never hardcode the Gemini API key — read it from the `GEMINI_API_KEY` environment variable (already wired through `.env`).
 - Every user-facing health result must include the safety disclaimer.
 - Keep agent replies short, warm, and plain-text (no markdown/bullets) so they sound natural via text-to-speech. Detect the user's language and reply in it.
+- The UI is bilingual (English / Traditional Chinese, zh-TW). Frontend strings live in the `translations` table in `static/index.html` keyed by `data-i18n`/`data-i18n-placeholder`/`data-i18n-title`; when adding UI text, add the key to **both** `en` and `zh`. Use Traditional characters (zh-TW), not Simplified, and keep TTS/STT language codes at `zh-TW`.
 - New agent capabilities should be added as small, focused tool functions with clear docstrings (Gemini uses the docstring + type hints as the tool schema).
 - Use clear variable names; add short comments only for non-obvious logic.
 
@@ -127,11 +128,12 @@ Done:
 - [x] Image upload, storage, and analysis
 - [x] Multilingual, voice-friendly responses with safety disclaimer
 - [x] Web UI (dashboard + chat)
+- [x] Bilingual UI (English / Traditional Chinese zh-TW) with a one-tap language switch, localized starter prompts, and zh-TW TTS/STT
 
 Next (see PRD roadmap):
-- [ ] Integrate a real dataset (then original survey data)
+- [ ] Integrate a real dataset (then original Taiwan survey data)
 - [ ] Add more conditions / richer features
-- [ ] First-class Traditional Chinese (zh-TW) support
+- [ ] Broaden language support (e.g. Taiwanese Hokkien / Hakka) on top of EN + zh-TW
 - [ ] Real voice (TTS/STT) and real telephony for emergency calls
 - [ ] Prediction explainability (which factors drove the result)
 
