@@ -6,12 +6,12 @@
 
 ## 1. Overview
 
-**ElderCare AI** is a caring, voice-friendly assistant for elderly users and their families. It combines two AI components inside a single conversational agent:
+**ElderCare AI** is a caring, voice-friendly assistant for elderly users and their families. It is designed around the **common chronic conditions of Taiwan's ageing population**, where a fast-growing share of older adults live with one or more of these diseases and often rely on family members for daily care. It combines two AI components inside a single conversational agent:
 
 - **Machine Learning model** — a Random Forest classifier that screens for a likely condition (Hypertension, Diabetes, Osteoarthritis, Dementia, or Healthy) from basic vitals and symptoms (age, blood pressure, blood sugar, joint pain, memory loss, fatigue).
 - **LLM (Google Gemini)** — an agent with tool/function calling that interprets the ML result, holds a natural conversation, and performs helpful actions (set reminders, call an emergency contact, analyze uploaded images).
 
-The assistant detects the user's language and replies in the same language, using short, warm sentences that sound natural when read aloud by a text-to-speech engine.
+The assistant is **bilingual (English and Traditional Chinese, zh-TW)** with a one-tap language switch in the UI, and additionally detects the user's typed language and replies in kind — using short, warm sentences that sound natural when read aloud by a text-to-speech engine. This reflects the everyday Taiwan setting, where elders are most comfortable in Mandarin while caregivers and clinicians may switch between Mandarin and English.
 
 > **Important:** ElderCare AI is a **screening and daily-care aid, not a medical diagnosis.** Every health result includes a disclaimer encouraging the user to consult a healthcare professional.
 
@@ -19,22 +19,23 @@ The assistant detects the user's language and replies in the same language, usin
 
 ## 2. Problem Statement
 
+- Taiwan is an **aged society** (over 14% of the population is 65+), so chronic conditions like hypertension, diabetes, osteoarthritis, and dementia are increasingly common among elders.
 - Elderly users and non-medical caregivers struggle to interpret raw health numbers.
 - Many older users find typing and complex interfaces difficult; they need conversational, spoken-friendly interaction.
 - Most AI health tools output technical scores with no plain-language guidance and no follow-up actions.
-- Tools are often English-only and ignore the user's preferred language.
+- Tools are often English-only and ignore the user's preferred language — for Taiwan elders, a **Mandarin-first** experience is essential.
 
-**Result:** early warning signs are missed and daily care tasks (e.g. taking medicine on time) slip. We need an assistant that is accurate, understandable, multilingual, and able to *act*.
+**Result:** early warning signs are missed and daily care tasks (e.g. taking medicine on time) slip. We need an assistant that is accurate, understandable, bilingual (English / Mandarin), and able to *act*.
 
 ---
 
 ## 3. Goals
 
-1. Screen for common elderly conditions from simple vitals/symptoms.
+1. Screen for common Taiwan elderly conditions from simple vitals/symptoms.
 2. Explain results in warm, plain language that works when spoken aloud.
-3. Reply in the user's own language automatically.
+3. Serve users bilingually in **English and Mandarin Chinese** via a UI language switch, and auto-detect the typed language to reply in kind.
 4. Help with daily care: medicine reminders, emergency contact, image/report analysis.
-5. Keep the architecture modular so new conditions and tools can be added.
+5. Keep the architecture modular so new conditions, tools, and languages can be added.
 
 ### Success Criteria
 - ML model reaches strong accuracy/F1 on the evaluation split.
@@ -52,7 +53,7 @@ The assistant detects the user's language and replies in the same language, usin
 - Medicine reminders (create, list, delete) persisted to SQLite + JSON export.
 - Emergency-contact call action.
 - Image upload, storage, and analysis (e.g. health reports, medicine bottles).
-- Automatic multilingual replies, optimized for text-to-speech.
+- Bilingual English / Mandarin UI with a one-tap language switch, plus automatic language detection for replies, optimized for text-to-speech.
 - Web UI (dashboard + chat) served by FastAPI.
 - Safety disclaimer on all health responses.
 
@@ -68,9 +69,9 @@ The assistant detects the user's language and replies in the same language, usin
 
 | User | Needs |
 |------|-------|
-| **Elderly person** (primary) | Talk naturally, hear simple spoken answers, get reminders and reassurance. |
-| **Caregiver / family** | Understand the elder's health signals; rely on reminders and emergency contact. |
-| **Researcher (you)** | Train/evaluate the model; extend conditions, tools, and (later) real data. |
+| **Elderly person** (primary, Taiwan) | Talk naturally in Mandarin, hear simple spoken answers, get reminders and reassurance. |
+| **Caregiver / family** | Understand the elder's health signals in Mandarin or English; rely on reminders and emergency contact. |
+| **Researcher (you)** | Train/evaluate the model; extend conditions, tools, languages, and (later) real Taiwan data. |
 
 ---
 
@@ -81,7 +82,7 @@ The assistant detects the user's language and replies in the same language, usin
 3. **Medicine Reminders** — create / list / delete reminders, persisted to SQLite (`storage/reminders.db`) with a live JSON export (`storage/reminders.json`).
 4. **Emergency Contact** — initiate a (simulated) call to a family member or emergency contact.
 5. **Image Analysis & Storage** — user uploads an image; it is saved to `storage/images/`, recorded in `storage/images_db.json`, and passed to Gemini for analysis.
-6. **Multilingual, Voice-Friendly Output** — detects input language, replies in kind, with short plain-text sentences suited for TTS.
+6. **Bilingual, Voice-Friendly Interface** — a top-left language switch toggles the entire UI between English and Mandarin Chinese (and remembers the choice); the agent also detects the typed input language and replies in kind, with short plain-text sentences suited for TTS. Text-to-speech and speech input follow the selected language (Traditional Chinese `zh-TW` voice for Mandarin, as used in Taiwan).
 7. **Safety Disclaimer** — every health result reminds the user this is an AI screening aid, not a diagnosis.
 
 ---
@@ -159,7 +160,7 @@ Gemini Agent (core/agent.py + core/prompts.py)
 
 - Integrate a real public dataset, then original Taiwan elderly survey data.
 - Add more conditions and richer features (modular model design).
-- Add Traditional Chinese (zh-TW) as a first-class, validated language alongside others.
+- Broaden language support (e.g. Taiwanese Hokkien / Hakka) on top of the current English + Traditional Chinese (zh-TW), with localized TTS/STT voices.
 - Real text-to-speech / speech-to-text voice mode.
 - Real telephony for the emergency-contact action.
 - Explainability: show which vitals/symptoms drove a prediction.

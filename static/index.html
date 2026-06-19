@@ -287,15 +287,10 @@
       /* Suggested Query Buttons */
       .suggestions {
         display: flex;
+        flex-wrap: wrap;
         gap: 10px;
         padding: 0 30px;
-        overflow-x: auto;
-        white-space: nowrap;
         margin-bottom: 12px;
-      }
-
-      .suggestions::-webkit-scrollbar {
-        display: none; /* Hide suggestion scrollbar */
       }
 
       .suggest-btn {
@@ -479,6 +474,38 @@
         50% { transform: translateY(-4px); }
       }
 
+      /* Language Switcher (top-left) */
+      .lang-switch {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 24px;
+      }
+
+      .lang-btn {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 8px 10px;
+        border-radius: 12px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .lang-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary-dark);
+      }
+
+      .lang-btn.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+      }
+
       /* Mobile Layout Adaptation */
       @media (max-width: 768px) {
         .container {
@@ -498,36 +525,42 @@
       <!-- Left Dashboard / Status Panel -->
       <div class="sidebar">
         <div>
+          <!-- Language Switcher (top-left) -->
+          <div class="lang-switch">
+            <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">English</button>
+            <button class="lang-btn" id="lang-zh" onclick="setLanguage('zh')">中文</button>
+          </div>
+
           <div class="app-brand">
             <div class="app-logo">🏥</div>
             <div class="brand-text">
               <h1>ElderCare AI</h1>
-              <p>Companion & Health Advisor</p>
+              <p data-i18n="brandTagline">Companion & Health Advisor</p>
             </div>
           </div>
-          
+
           <div class="features-list">
             <div class="feature-item">
               <span class="feature-icon">🧠</span>
               <div class="feature-info">
-                <h3>Machine Learning System</h3>
-                <p>Analyzes your symptoms using Random Forest and gives fast advice.</p>
+                <h3 data-i18n="feat1Title">Machine Learning System</h3>
+                <p data-i18n="feat1Desc">Analyzes your symptoms using Random Forest and gives fast advice.</p>
               </div>
             </div>
-            
+
             <div class="feature-item">
               <span class="feature-icon">⏰</span>
               <div class="feature-info">
-                <h3>Daily Reminders</h3>
-                <p>Set medication or task alarms simply by speaking to the assistant.</p>
+                <h3 data-i18n="feat2Title">Daily Reminders</h3>
+                <p data-i18n="feat2Desc">Set medication or task alarms simply by speaking to the assistant.</p>
               </div>
             </div>
-            
+
             <div class="feature-item">
               <span class="feature-icon">📞</span>
               <div class="feature-info">
-                <h3>Emergency Dial</h3>
-                <p>Instantly asks for help or calls your loved ones if you feel unwell.</p>
+                <h3 data-i18n="feat3Title">Emergency Dial</h3>
+                <p data-i18n="feat3Desc">Instantly asks for help or calls your loved ones if you feel unwell.</p>
               </div>
             </div>
           </div>
@@ -535,7 +568,7 @@
 
         <div class="status-pulse">
           <div class="pulse-dot"></div>
-          Elderly Care Core Active
+          <span data-i18n="statusActive">Elderly Care Core Active</span>
         </div>
       </div>
 
@@ -543,8 +576,8 @@
       <div class="chat-panel">
         <div class="chat-header">
           <div class="chat-header-info">
-            <h2>Your Virtual Companion</h2>
-            <p>Tell me how you are feeling or ask for help</p>
+            <h2 data-i18n="chatTitle">Your Virtual Companion</h2>
+            <p data-i18n="chatSubtitle">Tell me how you are feeling or ask for help</p>
           </div>
         </div>
 
@@ -553,18 +586,17 @@
           <div class="message ai">
             <div class="message-content" style="position: relative; padding-right: 40px;">
               <button id="msg-btn-initial" class="action-btn" data-text="Hello! I am your companion. How can I help you today? If you feel unwell or have any symptoms, please let me know." style="position: absolute; top: 12px; right: 12px; padding: 4px; font-size: 16px; width: 24px; height: 24px;" onclick="toggleMessageTTS('msg-btn-initial')" title="Toggle Audio">🔊</button>
-              <div>Hello! I am your companion. How can I help you today? If you feel unwell or have any symptoms, please let me know.</div>
+              <div data-i18n="greeting">Hello! I am your companion. How can I help you today? If you feel unwell or have any symptoms, please let me know.</div>
             </div>
-            <div class="message-meta">Companion</div>
+            <div class="message-meta" data-i18n="companion">Companion</div>
           </div>
         </div>
 
         <!-- Quick Starters -->
         <div class="suggestions">
-          <button class="suggest-btn" onclick="useStarter('I am 72 years old. My systolic BP is 155, blood sugar is 98, and I feel fatigue.')">❤️ Check Vitals (BP/Fatigue)</button>
-          <button class="suggest-btn" onclick="useStarter('I am 68 years old. My blood sugar is 190, BP is 120, and I have joint pain.')">🍭 Check Vitals (Sugar/Joints)</button>
-          <button class="suggest-btn" onclick="useStarter('Please set a reminder for my medicine at 9 AM.')">⏰ Set Medicine Reminder</button>
-          <button class="suggest-btn" onclick="useStarter('Help me call my emergency contact.')">📞 Call Emergency</button>
+          <button class="suggest-btn" data-i18n="sVitals" onclick="useStarter('vitals')">❤️ Check Vitals</button>
+          <button class="suggest-btn" data-i18n="sReminder" onclick="useStarter('reminder')">⏰ Set Medicine Reminder</button>
+          <button class="suggest-btn" data-i18n="sEmergency" onclick="useStarter('emergency')">📞 Call Emergency</button>
         </div>
 
         <!-- Message Input -->
@@ -576,17 +608,18 @@
         </div>
         <div class="chat-input-area">
           <div class="input-container">
-            <button class="action-btn" id="mic-btn" onclick="toggleRecording()" title="Voice Input">🎙️</button>
-            <button class="action-btn" onclick="document.getElementById('image-upload').click()" title="Upload Image (Max 2MB)">📎</button>
+            <button class="action-btn" id="mic-btn" onclick="toggleRecording()" data-i18n-title="micTitle" title="Voice Input">🎙️</button>
+            <button class="action-btn" onclick="document.getElementById('image-upload').click()" data-i18n-title="imgTitle" title="Upload Image (Max 2MB)">🖼️</button>
             <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
             <input
               type="text"
               id="user-input"
               class="chat-input"
+              data-i18n-placeholder="inputPlaceholder"
               placeholder="Type your message here..."
               onkeydown="if(event.key === 'Enter') sendMessage()"
             />
-            <button onclick="sendMessage()" class="send-btn">Send</button>
+            <button onclick="sendMessage()" class="send-btn" data-i18n="send">Send</button>
           </div>
         </div>
       </div>
@@ -596,12 +629,112 @@
       const chatBox = document.getElementById("chat-box");
       const inputField = document.getElementById("user-input");
 
+      /* ---------------- Bilingual UI (English / Mandarin) ---------------- */
+      const translations = {
+        en: {
+          brandTagline: "Companion & Health Advisor",
+          feat1Title: "Machine Learning System",
+          feat1Desc: "Analyzes your symptoms using Random Forest and gives fast advice.",
+          feat2Title: "Daily Reminders",
+          feat2Desc: "Set medication or task alarms simply by speaking to the assistant.",
+          feat3Title: "Emergency Dial",
+          feat3Desc: "Instantly asks for help or calls your loved ones if you feel unwell.",
+          statusActive: "Elderly Care Core Active",
+          chatTitle: "Your Virtual Companion",
+          chatSubtitle: "Tell me how you are feeling or ask for help",
+          greeting: "Hello! I am your companion. How can I help you today? If you feel unwell or have any symptoms, please let me know.",
+          companion: "Companion",
+          sVitals: "❤️ Check Vitals",
+          sReminder: "⏰ Set Medicine Reminder",
+          sEmergency: "📞 Call Emergency",
+          inputPlaceholder: "Type your message here...",
+          send: "Send",
+          micTitle: "Voice Input",
+          imgTitle: "Upload Image (Max 2MB)",
+          commError: "I'm sorry, I encountered a communication issue. Please check your network and try again.",
+        },
+        zh: {
+          brandTagline: "陪伴與健康顧問",
+          feat1Title: "機器學習系統",
+          feat1Desc: "使用隨機森林分析您的症狀並快速給出建議。",
+          feat2Title: "每日提醒",
+          feat2Desc: "只需對助手說話，即可設定用藥或任務提醒。",
+          feat3Title: "緊急呼叫",
+          feat3Desc: "如果您感到不適，立即求助或撥打給您的親人。",
+          statusActive: "長者關懷核心運行中",
+          chatTitle: "您的虛擬夥伴",
+          chatSubtitle: "告訴我您的感受，或尋求協助",
+          greeting: "您好！我是您的夥伴。今天我能為您做些什麼？如果您感到不適或有任何症狀，請告訴我。",
+          companion: "夥伴",
+          sVitals: "❤️ 檢查身體狀況",
+          sReminder: "⏰ 設定用藥提醒",
+          sEmergency: "📞 緊急呼叫",
+          inputPlaceholder: "在此輸入您的訊息……",
+          send: "傳送",
+          micTitle: "語音輸入",
+          imgTitle: "上傳圖片（最大 2MB）",
+          commError: "抱歉，我遇到了通訊問題。請檢查您的網路後再試一次。",
+        },
+      };
+
+      // Starter prompts are sent to the agent in the active language so the
+      // bot replies in the same language (the agent auto-detects language).
+      const starterPrompts = {
+        en: {
+          vitals: "I am 72 years old. My systolic BP is 155, blood sugar is 98, and I feel fatigue.",
+          reminder: "Please set a reminder for my medicine at 9 AM.",
+          emergency: "Help me call my emergency contact.",
+        },
+        zh: {
+          vitals: "我今年72歲。我的收縮壓是155，血糖是98，而且我感到疲倦。",
+          reminder: "請幫我設定一個早上9點的吃藥提醒。",
+          emergency: "請幫我撥打我的緊急聯絡人。",
+        },
+      };
+
+      let currentLang = localStorage.getItem("ec_lang") || "en";
+
+      function t(key) {
+        return (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
+      }
+
+      function setLanguage(lang) {
+        if (!translations[lang]) return;
+        currentLang = lang;
+        localStorage.setItem("ec_lang", lang);
+        document.documentElement.lang = lang === "zh" ? "zh-TW" : "en";
+
+        // Text content
+        document.querySelectorAll("[data-i18n]").forEach(function (el) {
+          el.textContent = t(el.getAttribute("data-i18n"));
+        });
+        // Placeholders
+        document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+          el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder")));
+        });
+        // Tooltips
+        document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+          el.setAttribute("title", t(el.getAttribute("data-i18n-title")));
+        });
+        // Keep the initial greeting's TTS text in sync
+        const initialBtn = document.getElementById("msg-btn-initial");
+        if (initialBtn) initialBtn.setAttribute("data-text", t("greeting"));
+
+        // Active state on the toggle
+        document.getElementById("lang-en").classList.toggle("active", lang === "en");
+        document.getElementById("lang-zh").classList.toggle("active", lang === "zh");
+
+        // Speech recognition language
+        if (recognition) recognition.lang = lang === "zh" ? "zh-TW" : "en-US";
+      }
+
       function formatTime(date) {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
 
-      function useStarter(text) {
-        inputField.value = text;
+      function useStarter(key) {
+        const prompt = (starterPrompts[currentLang] && starterPrompts[currentLang][key]) || key;
+        inputField.value = prompt;
         sendMessage();
       }
 
@@ -677,7 +810,8 @@
 
         const cleanText = text.replace(/<[^>]*>?/gm, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        
+        utterance.lang = currentLang === "zh" ? "zh-TW" : "en-US";
+
         utterance.onend = function() {
           if (currentPlayingBtnId === btnId) {
             btn.innerText = '🔊';
@@ -733,7 +867,8 @@
         if (currentMessage) {
            userHtml += `${escapeHTML(currentMessage)}`;
         }
-        userHtml += `</div><div class="message-meta">You at ${formatTime(now)}</div></div>`;
+        const youLabel = currentLang === "zh" ? "您" : "You";
+        userHtml += `</div><div class="message-meta">${youLabel} ${currentLang === "zh" ? "於" : "at"} ${formatTime(now)}</div></div>`;
         chatBox.innerHTML += userHtml;
         
         inputField.value = "";
@@ -751,7 +886,7 @@
                 <div class="typing-dot"></div>
               </div>
             </div>
-            <div class="message-meta">Companion</div>
+            <div class="message-meta">${t("companion")}</div>
           </div>
         `;
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -801,7 +936,7 @@
                 <button id="${msgId}" class="action-btn" data-text="${escapeHTML(data.reply)}" style="position: absolute; top: 12px; right: 12px; padding: 4px; font-size: 16px; width: 24px; height: 24px;" onclick="toggleMessageTTS('${msgId}')" title="Toggle Audio">🔊</button>
                 <div>${formattedReply}</div>
               </div>
-              <div class="message-meta">Companion at ${formatTime(new Date())}</div>
+              <div class="message-meta">${t("companion")} ${currentLang === "zh" ? "於" : "at"} ${formatTime(new Date())}</div>
             </div>
           `;
           chatBox.scrollTop = chatBox.scrollHeight;
@@ -813,8 +948,8 @@
 
           chatBox.innerHTML += `
             <div class="message ai">
-              <div class="message-content">I'm sorry, I encountered a communication issue. Please check your network and try again.</div>
-              <div class="message-meta">Companion</div>
+              <div class="message-content">${t("commError")}</div>
+              <div class="message-meta">${t("companion")}</div>
             </div>
           `;
           chatBox.scrollTop = chatBox.scrollHeight;
@@ -829,6 +964,9 @@
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#039;");
       }
+
+      // Apply the saved (or default) language once the page is ready.
+      setLanguage(currentLang);
     </script>
   </body>
 </html>
