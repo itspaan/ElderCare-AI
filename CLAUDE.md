@@ -12,7 +12,7 @@ A conversational **Machine Learning + LLM** health companion for elderly users a
 2. **Manage daily care** — set/list/delete medicine reminders, call an emergency contact, store and analyze uploaded images.
 3. **Reply in the user's own language**, in short sentences suited for text-to-speech.
 
-See `PRD.md` for full product requirements.
+See `docs/PRD.md` for full product requirements.
 
 > **Important:** this is a **screening and care aid, not a medical diagnosis.** Every health result must include a disclaimer encouraging the user to consult a healthcare professional.
 
@@ -77,7 +77,8 @@ AgentAi/
 │   └── index.html                # Dashboard + chat UI
 ├── storage/                      # Runtime data (gitignored): reminders.db, images/, *.json
 ├── requirements.txt
-├── PRD.md
+├── docs/
+│   └── PRD.md
 └── CLAUDE.md
 ```
 

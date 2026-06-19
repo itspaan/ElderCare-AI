@@ -42,5 +42,5 @@ Open http://127.0.0.1:8000. To chat in the terminal instead: `python -m core.age
 
 ## Documentation
 
-- [`PRD.md`](PRD.md) — product requirements.
+- [`docs/PRD.md`](docs/PRD.md) — product requirements.
 - [`CLAUDE.md`](CLAUDE.md) — context and conventions for working on the code.
