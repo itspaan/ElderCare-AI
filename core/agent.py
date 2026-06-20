@@ -44,6 +44,77 @@ def call_emergency_contact(contact_name: str) -> str:
     print(f"\n[SYSTEM] -> Executing Tool: Calling {contact_name}...")
     return f"Success: Now calling {contact_name}."
 
+# Clinically "normal" reference values for an elderly person. Used as the
+# baseline when measuring how much each vital/symptom drove a prediction.
+_FEATURE_BASELINE = {
+    "Age": 65,
+    "Systolic_BP": 120,
+    "Blood_Sugar": 90,
+    "Joint_Pain": 0,
+    "Memory_Loss": 0,
+    "Fatigue": 0,
+}
+
+# Human-readable, voice-friendly labels for each feature.
+_FEATURE_LABELS = {
+    "Age": "age",
+    "Systolic_BP": "blood pressure",
+    "Blood_Sugar": "blood sugar",
+    "Joint_Pain": "joint pain",
+    "Memory_Loss": "memory loss",
+    "Fatigue": "fatigue",
+}
+
+# Symptom features are 0/1 flags; the rest are numeric measurements.
+_SYMPTOM_FEATURES = ("Joint_Pain", "Memory_Loss", "Fatigue")
+
+
+def _explain_prediction(model, df_input, prediction, features, top_n=3, threshold=0.01):
+    """Return the features that most influenced this single prediction.
+
+    For the predicted class, each feature is reset to its normal baseline and
+    the model is re-scored. The drop in the predicted class's probability is
+    that feature's contribution (positive = pushed toward the prediction).
+    Returns a list of (feature, value, contribution) sorted by influence.
+    """
+    classes = list(model.classes_)
+    class_idx = classes.index(prediction)
+    base_prob = model.predict_proba(df_input)[0][class_idx]
+
+    contributions = []
+    for feat in features:
+        value = df_input.iloc[0][feat]
+        baseline = _FEATURE_BASELINE.get(feat, value)
+        if value == baseline:
+            continue  # already at a normal value -> no abnormal contribution
+        perturbed = df_input.copy()
+        perturbed.iloc[0, perturbed.columns.get_loc(feat)] = baseline
+        new_prob = model.predict_proba(perturbed)[0][class_idx]
+        contribution = base_prob - new_prob
+        if abs(contribution) >= threshold:
+            contributions.append((feat, value, contribution))
+
+    contributions.sort(key=lambda c: abs(c[2]), reverse=True)
+    return contributions[:top_n]
+
+
+def _format_factors(contributions):
+    """Turn raw contributions into a short, voice-friendly hint string."""
+    if not contributions:
+        return "all readings are within normal ranges"
+
+    parts = []
+    for feat, value, contribution in contributions:
+        label = _FEATURE_LABELS.get(feat, feat)
+        if feat in _SYMPTOM_FEATURES:
+            value_str = "present"
+        else:
+            value_str = str(int(value))
+        direction = "raised" if contribution > 0 else "lowered"
+        parts.append(f"{label} ({value_str}) {direction} this result")
+    return "; ".join(parts)
+
+
 def predict_disease_from_vitals(
     age: int,
     systolic_bp: int,
@@ -132,11 +203,19 @@ def predict_disease_from_vitals(
             "Ensure you rest well, drink plenty of water, and monitor how you feel. "
             "Please consult a doctor for official medical advice."
         )
-            
+
+        # Explainability: which vitals/symptoms drove this prediction
+        factors = _explain_prediction(model, df_input, prediction, features)
+        factor_text = _format_factors(factors)
+
         print(f"\n[SYSTEM] -> Executing Tool: Predict disease for vitals={input_dict}")
         print(f"[SYSTEM] -> Prediction result: {prediction} (Confidence: {confidence:.2f}%)")
-        
-        return f"Prediction: {prediction} (Confidence: {confidence:.1f}%). Standard Advice: {advice}"
+        print(f"[SYSTEM] -> Key factors: {factor_text}")
+
+        return (
+            f"Prediction: {prediction} (Confidence: {confidence:.1f}%). "
+            f"Key factors: {factor_text}. Standard Advice: {advice}"
+        )
     except Exception as e:
         print(f"[SYSTEM] -> Error running model inference: {e}")
         return f"Error: Unable to run disease prediction. Details: {str(e)}"

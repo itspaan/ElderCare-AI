@@ -129,13 +129,14 @@ Done:
 - [x] Multilingual, voice-friendly responses with safety disclaimer
 - [x] Web UI (dashboard + chat)
 - [x] Bilingual UI (English / Traditional Chinese zh-TW) with a one-tap language switch, localized starter prompts, and zh-TW TTS/STT
+- [x] Prediction explainability — `predict_disease_from_vitals` returns the top factors that drove the result (perturbation against clinical baselines in `core/agent.py`), and the agent verbalizes them
 
 Next (see PRD roadmap):
 - [ ] Integrate a real dataset (then original Taiwan survey data)
 - [ ] Add more conditions / richer features
 - [ ] Broaden language support (e.g. Taiwanese Hokkien / Hakka) on top of EN + zh-TW
 - [ ] Real voice (TTS/STT) and real telephony for emergency calls
-- [ ] Prediction explainability (which factors drove the result)
+- [ ] Surface the explainability factors visually in the dashboard UI
 
 > Update this checklist as tasks get done.
 
