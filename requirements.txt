@@ -5,3 +5,5 @@ python-dotenv
 scikit-learn
 pandas
 numpy
+sqlalchemy
+psycopg2-binary  # PostgreSQL driver for persistent survey storage (DATABASE_URL)

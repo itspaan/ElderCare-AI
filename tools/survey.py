@@ -4,10 +4,15 @@ caregivers) to replace the synthetic dataset and properly evaluate the screening
 model. See docs/DATA_COLLECTION.md for the full plan, consent/ethics rules, and
 the path from survey data to a retrained model.
 
-Design mirrors tools/reminders.py: a small SQLite store under storage/ with a
-real-time JSON export, plus a CSV export whose columns match
-data/elderly_synthetic_data.csv exactly so training/train_model.py can point at
-it directly.
+Persistence is backed by SQLAlchemy so the SAME code runs on either:
+  * SQLite (default, local dev) — a file under storage/, like reminders.py; or
+  * managed Postgres (production) — set DATABASE_URL, and survey data survives
+    redeploys on an ephemeral host. See docs/DEPLOYMENT.md §6.
+
+A real-time JSON mirror and a CSV export (columns matching
+data/elderly_synthetic_data.csv) are still written to storage/ so training and
+quick inspection work as before; with Postgres the database is the source of
+truth and those files are regenerated on demand.
 
 Two rules from the data-collection plan are enforced here:
   1. Store a row ONLY if consent is true (sensitive personal data).
@@ -20,13 +25,20 @@ import os
 import csv
 import json
 import uuid
-import sqlite3
 from datetime import datetime
 
-# Store database alongside the other runtime data in storage/.
+from dotenv import load_dotenv
+from sqlalchemy import (
+    create_engine, MetaData, Table, Column, Integer, String, insert, select, func,
+)
+
+# Load .env so DATABASE_URL is available even when this module is imported on its
+# own (e.g. a direct test), not only through main.py / core.agent.
+load_dotenv()
+
+# JSON/CSV mirrors live alongside the other runtime data in storage/.
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORAGE_DIR = os.path.join(PROJECT_ROOT, "storage")
-DB_PATH = os.path.join(STORAGE_DIR, "survey.db")
 JSON_PATH = os.path.join(STORAGE_DIR, "survey.json")
 CSV_PATH = os.path.join(STORAGE_DIR, "survey_export.csv")
 
@@ -41,39 +53,53 @@ VALID_LABEL_SOURCES = {"clinician", "medical_record", "self_report"}
 CSV_COLUMNS = ["Age", "Systolic_BP", "Blood_Sugar", "Joint_Pain", "Memory_Loss", "Fatigue", "Disease"]
 
 
-def _get_connection():
-    """Return a database connection and ensure the storage directory exists."""
-    os.makedirs(STORAGE_DIR, exist_ok=True)
-    return sqlite3.connect(DB_PATH)
+def _database_url() -> str:
+    """Pick the database backend from the environment.
+
+    Returns DATABASE_URL when set (managed Postgres in production), otherwise a
+    local SQLite file under storage/ so development needs no extra services.
+    Normalizes the legacy ``postgres://`` scheme some hosts hand out to the
+    ``postgresql://`` form SQLAlchemy expects.
+    """
+    url = os.getenv("DATABASE_URL", "").strip()
+    if not url:
+        os.makedirs(STORAGE_DIR, exist_ok=True)
+        return "sqlite:///" + os.path.join(STORAGE_DIR, "survey.db")
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+    return url
+
+
+DATABASE_URL = _database_url()
+IS_SQLITE = DATABASE_URL.startswith("sqlite")
+
+# One engine per process. pool_pre_ping recycles connections dropped by managed
+# Postgres (Supabase/serverless idle timeouts) so the first request after an
+# idle period doesn't fail.
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, future=True)
+
+metadata = MetaData()
+survey_response = Table(
+    "survey_response", metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("participant_id", String, nullable=False),
+    Column("age", Integer),
+    Column("systolic_bp", Integer),
+    Column("blood_sugar", Integer),
+    Column("joint_pain", Integer),
+    Column("memory_loss", Integer),
+    Column("fatigue", Integer),
+    Column("diagnosed_condition", String, nullable=False),
+    Column("label_source", String),
+    Column("consent", Integer, nullable=False),
+    Column("language", String),
+    Column("created_at", String, nullable=False),
+)
 
 
 def _init_db():
     """Create the survey_response table if it does not exist."""
-    conn = _get_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS survey_response (
-                id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-                participant_id      TEXT NOT NULL,
-                age                 INTEGER,
-                systolic_bp         INTEGER,
-                blood_sugar         INTEGER,
-                joint_pain          INTEGER,
-                memory_loss         INTEGER,
-                fatigue             INTEGER,
-                diagnosed_condition TEXT NOT NULL,
-                label_source        TEXT,
-                consent             INTEGER NOT NULL,
-                language            TEXT,
-                created_at          TEXT NOT NULL
-            )
-            """
-        )
-        conn.commit()
-    finally:
-        conn.close()
+    metadata.create_all(engine)
 
 
 def _coerce_binary(value, field_name):
@@ -156,29 +182,27 @@ def save_survey_response(
     pid = participant_id or ("P-" + uuid.uuid4().hex[:10])
     lang = "zh-TW" if str(language).lower().startswith("zh") else "en"
 
-    conn = _get_connection()
     try:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO survey_response (
-                participant_id, age, systolic_bp, blood_sugar, joint_pain,
-                memory_loss, fatigue, diagnosed_condition, label_source,
-                consent, language, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                pid, age, systolic_bp, blood_sugar, joint_pain, memory_loss,
-                fatigue, condition, source, consent_flag, lang,
-                datetime.now().isoformat(),
-            ),
-        )
-        conn.commit()
+        with engine.begin() as conn:
+            conn.execute(
+                insert(survey_response).values(
+                    participant_id=pid,
+                    age=age,
+                    systolic_bp=systolic_bp,
+                    blood_sugar=blood_sugar,
+                    joint_pain=joint_pain,
+                    memory_loss=memory_loss,
+                    fatigue=fatigue,
+                    diagnosed_condition=condition,
+                    label_source=source,
+                    consent=consent_flag,
+                    language=lang,
+                    created_at=datetime.now().isoformat(),
+                )
+            )
     except Exception as e:
         print(f"[SYSTEM] -> Error saving survey response: {e}")
         return {"ok": False, "message": f"Failed to save response: {e}", "participant_id": None}
-    finally:
-        conn.close()
 
     _sync_to_json()
     print(f"[SYSTEM] -> Survey response saved: {pid} ({condition}, source={source})")
@@ -187,33 +211,29 @@ def save_survey_response(
 
 def _fetch_rows():
     """Return all survey rows as a list of dicts (consented rows only are stored)."""
-    conn = _get_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT participant_id, age, systolic_bp, blood_sugar, joint_pain,
-                   memory_loss, fatigue, diagnosed_condition, label_source,
-                   language, created_at
-            FROM survey_response
-            ORDER BY id
-            """
-        )
-        rows = cursor.fetchall()
-    finally:
-        conn.close()
-
-    keys = [
-        "participant_id", "age", "systolic_bp", "blood_sugar", "joint_pain",
-        "memory_loss", "fatigue", "diagnosed_condition", "label_source",
-        "language", "created_at",
-    ]
-    return [dict(zip(keys, r)) for r in rows]
+    stmt = select(
+        survey_response.c.participant_id,
+        survey_response.c.age,
+        survey_response.c.systolic_bp,
+        survey_response.c.blood_sugar,
+        survey_response.c.joint_pain,
+        survey_response.c.memory_loss,
+        survey_response.c.fatigue,
+        survey_response.c.diagnosed_condition,
+        survey_response.c.label_source,
+        survey_response.c.language,
+        survey_response.c.created_at,
+    ).order_by(survey_response.c.id)
+    with engine.connect() as conn:
+        rows = conn.execute(stmt).all()
+    # ._mapping turns each Row into a dict keyed by the selected column names.
+    return [dict(r._mapping) for r in rows]
 
 
 def _sync_to_json():
     """Mirror all stored responses to a JSON file (real-time snapshot)."""
     try:
+        os.makedirs(STORAGE_DIR, exist_ok=True)
         data = _fetch_rows()
         with open(JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
@@ -223,11 +243,17 @@ def _sync_to_json():
 
 def get_survey_stats() -> dict:
     """Return total count and a per-condition breakdown for monitoring balance."""
-    rows = _fetch_rows()
     by_condition = {c: 0 for c in sorted(VALID_CONDITIONS)}
-    for r in rows:
-        by_condition[r["diagnosed_condition"]] = by_condition.get(r["diagnosed_condition"], 0) + 1
-    return {"total": len(rows), "by_condition": by_condition}
+    stmt = select(
+        survey_response.c.diagnosed_condition,
+        func.count().label("n"),
+    ).group_by(survey_response.c.diagnosed_condition)
+    total = 0
+    with engine.connect() as conn:
+        for condition, n in conn.execute(stmt).all():
+            by_condition[condition] = by_condition.get(condition, 0) + n
+            total += n
+    return {"total": total, "by_condition": by_condition}
 
 
 def export_survey_csv() -> str:

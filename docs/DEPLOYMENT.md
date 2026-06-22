@@ -120,12 +120,41 @@ cheapest first:
 
 | Option | Persistence | Notes |
 |---|---|---|
-| **External managed Postgres** (e.g. Render Postgres free, or Supabase free) | ✅ Durable | Best for survey data. Store responses in a table instead of SQLite/JSON. |
+| **External managed Postgres** (e.g. Supabase free, or Render Postgres free) | ✅ Durable | Best for survey data. Store responses in a table instead of SQLite/JSON. |
 | **Render Persistent Disk** | ✅ Durable | Paid add-on; lets you keep the current SQLite/file approach by mounting a disk at `storage/`. |
 | **Stay on ephemeral disk** | ❌ Lost on restart | OK for demos only. **Do not** collect real survey data this way. |
 
-For the thesis survey, plan to write responses to an external database. The
-schema and flow are described in [DATA_COLLECTION.md](DATA_COLLECTION.md).
+The app already supports option 1 **with no code changes**: `tools/survey.py`
+reads a `DATABASE_URL` environment variable. When it is unset (local dev) survey
+data goes to a local SQLite file; when it is set to a Postgres URL, survey data is
+written to that managed database instead — so it survives every redeploy.
+
+### 6.1 Set up a free Supabase Postgres (recommended)
+
+1. Create a project at [supabase.com](https://supabase.com) (free tier). Pick a
+   strong database password and save it.
+2. In the project, go to **Project Settings → Database → Connection string →
+   URI**. Copy the URI; it looks like:
+   ```
+   postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxx.supabase.co:5432/postgres
+   ```
+   Replace `[YOUR-PASSWORD]` with the password from step 1, and append
+   `?sslmode=require` at the end (Supabase requires SSL).
+   > Tip: for a server that sleeps/wakes (Render free), the **Session pooler**
+   > connection string (port `6543`) is also fine — copy whichever Supabase shows.
+3. On Render, go to your web service → **Environment → Add Environment Variable**:
+   - Key: `DATABASE_URL`
+   - Value: the full `postgresql://...?sslmode=require` string from step 2.
+4. **Redeploy.** On startup the app auto-creates the `survey_response` table.
+   Submit one test response, redeploy again, and confirm the row is still there
+   (`GET /api/survey/stats`) — that proves persistence.
+
+You can browse/edit/export the collected rows anytime from the Supabase dashboard
+(**Table Editor → survey_response**), in addition to the app's
+`GET /api/survey/export` CSV.
+
+The table schema and the survey→retrain flow are described in
+[DATA_COLLECTION.md](DATA_COLLECTION.md).
 
 ---
 

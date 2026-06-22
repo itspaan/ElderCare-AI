@@ -24,9 +24,9 @@ See `docs/PRD.md` for full product requirements.
 - **Backend / API:** FastAPI (run with Uvicorn)
 - **LLM:** Google Gemini (`gemini-2.5-flash`) via the `google-genai` SDK, with function calling
 - **ML:** scikit-learn (Random Forest), pandas, numpy
-- **Storage:** SQLite + JSON files under `storage/`
+- **Storage:** SQLite + JSON files under `storage/`. Survey data goes through SQLAlchemy and uses **managed Postgres** instead when `DATABASE_URL` is set (so it survives redeploys — see `docs/DEPLOYMENT.md` §6.1).
 - **Frontend:** plain HTML/CSS/JS in `static/index.html` (no heavy framework)
-- **Config:** `.env` with `GEMINI_API_KEY`, loaded via `python-dotenv`
+- **Config:** `.env` with `GEMINI_API_KEY` (and optional `DATABASE_URL` for persistent survey storage), loaded via `python-dotenv`. See `.env.example`.
 - **Environment:** Windows, VS Code. Virtual env in `venv/`.
 
 ---
@@ -134,10 +134,11 @@ Done:
 - [x] Bilingual UI (English / Traditional Chinese zh-TW) with a one-tap language switch, localized starter prompts, and zh-TW TTS/STT
 - [x] Prediction explainability — `predict_disease_from_vitals` returns the top factors that drove the result (perturbation against clinical baselines in `core/agent.py`), and the agent verbalizes them
 
-- [x] Research survey for real labelled data collection — consent-gated `tools/survey.py` (SQLite), `POST /api/survey` + `GET /api/survey/stats` + `GET /api/survey/export` (CSV matching the training columns), and a bilingual consent + form modal in the UI
+- [x] Research survey for real labelled data collection — consent-gated `tools/survey.py`, `POST /api/survey` + `GET /api/survey/stats` + `GET /api/survey/export` (CSV matching the training columns), and a bilingual consent + form modal in the UI
+- [x] Persistent DB support — `tools/survey.py` uses SQLAlchemy and switches from local SQLite to **managed Postgres** when `DATABASE_URL` is set, so survey data survives redeploys (Supabase setup in `docs/DEPLOYMENT.md` §6.1)
 
 Next (see PRD roadmap):
-- [ ] Provision a persistent DB for survey data (managed Postgres) before real collection; collect, export, retrain, evaluate, compare (see `docs/DATA_COLLECTION.md`)
+- [ ] Provision the persistent DB for real collection — set `DATABASE_URL` to a managed Postgres (Supabase), pilot a few records, verify they persist across a redeploy; then collect, export, retrain, evaluate, compare (see `docs/DATA_COLLECTION.md`)
 - [ ] Integrate a real dataset (then original Taiwan survey data)
 - [ ] Add more conditions / richer features
 - [ ] Broaden language support (e.g. Taiwanese Hokkien / Hakka) on top of EN + zh-TW

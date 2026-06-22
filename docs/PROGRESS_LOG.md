@@ -23,8 +23,12 @@ ringkasannya jadi entri bertanggal di bawah.
 
 **Prioritas 1 — Jalur data nyata (kontribusi utama skripsi):**
 - [ ] Urus persetujuan **IRB / etik** dari kampus sebelum ambil data peserta.
-- [ ] Siapkan **database persisten** (managed Postgres, mis. Supabase/Render)
-      untuk ganti SQLite lokal — biar data tidak hilang saat redeploy.
+- [x] **Kode** sudah dukung database persisten — `tools/survey.py` otomatis pilih
+      SQLite lokal (default) atau **Postgres** kalau `DATABASE_URL` diisi
+      (selesai 2026-06-22).
+- [ ] **Provisioning DB persisten** — bikin Postgres di Supabase, set
+      `DATABASE_URL` di Render, baru data aman saat redeploy (lihat
+      DEPLOYMENT.md §6.1).
 - [ ] **Uji coba (pilot)** isi beberapa data lewat form survey, lalu pastikan
       datanya tetap ada setelah app di-restart/redeploy.
 - [ ] **Kumpulkan** data berlabel — target beberapa lusin per kelas, seimbang
@@ -44,6 +48,44 @@ ringkasannya jadi entri bertanggal di bawah.
 - [ ] Tambah kondisi / fitur yang lebih kaya.
 - [ ] Perluas bahasa (Hokkien/Hakka Taiwan) di atas EN + zh-TW.
 - [ ] Suara asli (TTS/STT) dan telepon darurat sungguhan.
+
+---
+
+## 2026-06-22 — DB persistence (Postgres lewat DATABASE_URL)
+
+**Apa:** Menyiapkan penyimpanan survey yang persisten supaya data riset tidak
+hilang saat app di-redeploy di host gratis (disk-nya ephemeral).
+
+- `tools/survey.py` ditulis ulang memakai **SQLAlchemy Core**. Satu kode, dua
+  backend, dipilih lewat env var `DATABASE_URL`:
+  - **kosong** → SQLite lokal di `storage/survey.db` (dev, tanpa setup tambahan);
+  - **diisi** → managed Postgres (produksi, data selamat saat redeploy).
+  - Skema lama `postgres://` otomatis dinormalkan ke `postgresql://`; pakai
+    `pool_pre_ping` supaya koneksi idle Supabase yang putus tidak bikin request
+    pertama gagal. Tabel `survey_response` dibuat otomatis saat start.
+- Semua logika lama tetap: consent gate, validasi 5 kelas, sumber label,
+  `participant_id` anonim, mirror JSON, dan ekspor CSV (kolom sama persis dengan
+  `data/elderly_synthetic_data.csv`).
+- `requirements.txt` + `sqlalchemy`, `psycopg2-binary`. File `.env.example` baru
+  mendokumentasikan `GEMINI_API_KEY` dan `DATABASE_URL`.
+- Dokumentasi: DEPLOYMENT.md §6.1 (langkah Supabase konkret), DATA_COLLECTION.md
+  §7, dan CLAUDE.md diperbarui.
+
+**Kenapa:** Tanpa DB persisten, semua data survey terhapus tiap redeploy di free
+tier — tidak aman untuk mengumpulkan data riset skripsi.
+
+**Cara cek:**
+- Lokal (SQLite): jalankan app, submit lewat modal survey, cek
+  `GET /api/survey/stats`, unduh `GET /api/survey/export`.
+- Produksi (Postgres): set `DATABASE_URL` ke string Supabase, redeploy, submit 1
+  data, redeploy lagi, pastikan datanya masih ada (stats tidak nol).
+
+**Langkah selanjutnya:**
+- Provisioning Postgres asli di Supabase + set `DATABASE_URL` di Render, lalu
+  pilot test persistensi lintas redeploy.
+- Urus IRB / etik sebelum kumpulkan data peserta nyata.
+- Setelah ada data: export CSV → retrain → evaluasi jujur per kelas →
+  bandingkan dengan model sintetis.
 
 ---
 

@@ -134,7 +134,8 @@ CREATE TABLE survey_response (
 - [ ] IRB / ethics approval obtained
 - [x] Consent screen written (EN + zh-TW) and wired to store only on consent
 - [x] Ground-truth labelling source captured per row (`label_source`: clinician / medical_record / self_report)
-- [ ] Persistent database provisioned (not ephemeral disk) — currently local SQLite (`storage/survey.db`); swap for managed Postgres before real collection (see [DEPLOYMENT.md](DEPLOYMENT.md) §6)
+- [x] Code supports a persistent database — `tools/survey.py` switches between local SQLite (default) and managed Postgres via the `DATABASE_URL` env var, no code change needed
+- [ ] Persistent database **provisioned** (not ephemeral disk) — set `DATABASE_URL` to a managed Postgres (Supabase free) before real collection (see [DEPLOYMENT.md](DEPLOYMENT.md) §6.1)
 - [x] `/api/survey` endpoint + `tools/survey.py` implemented (plus `GET /api/survey/stats` and `GET /api/survey/export`)
 - [ ] Pilot test with a few records, verify rows persist across a redeploy
 - [ ] Collect, export, retrain, evaluate, compare
@@ -145,3 +146,9 @@ CREATE TABLE survey_response (
 > `GET /api/survey/export` CSV uses the exact column names/casing of
 > `data/elderly_synthetic_data.csv` (`diagnosed_condition` → `Disease`), so
 > `python -m training.train_model` can point at it directly per §6.
+>
+> **Storage backend.** Persistence goes through SQLAlchemy and is selected by the
+> `DATABASE_URL` env var: unset → local SQLite at `storage/survey.db` (dev); set
+> to a Postgres URL → that managed database (production, survives redeploys). The
+> `survey_response` table is created automatically on startup. See
+> [DEPLOYMENT.md](DEPLOYMENT.md) §6.1 for the Supabase setup.
