@@ -132,9 +132,16 @@ CREATE TABLE survey_response (
 ## 7. Checklist
 
 - [ ] IRB / ethics approval obtained
-- [ ] Consent screen written (EN + zh-TW) and wired to store only on consent
-- [ ] Ground-truth labelling source confirmed (clinician / record)
-- [ ] Persistent database provisioned (not ephemeral disk)
-- [ ] `/api/survey` endpoint + `tools/survey.py` implemented
+- [x] Consent screen written (EN + zh-TW) and wired to store only on consent
+- [x] Ground-truth labelling source captured per row (`label_source`: clinician / medical_record / self_report)
+- [ ] Persistent database provisioned (not ephemeral disk) — currently local SQLite (`storage/survey.db`); swap for managed Postgres before real collection (see [DEPLOYMENT.md](DEPLOYMENT.md) §6)
+- [x] `/api/survey` endpoint + `tools/survey.py` implemented (plus `GET /api/survey/stats` and `GET /api/survey/export`)
 - [ ] Pilot test with a few records, verify rows persist across a redeploy
 - [ ] Collect, export, retrain, evaluate, compare
+
+> **Implementation notes.** `tools/survey.py` stores rows only when `consent` is
+> true, validates the label against the model's five classes, records the label
+> source, and de-identifies with an opaque `participant_id` (no names). The
+> `GET /api/survey/export` CSV uses the exact column names/casing of
+> `data/elderly_synthetic_data.csv` (`diagnosed_condition` → `Disease`), so
+> `python -m training.train_model` can point at it directly per §6.

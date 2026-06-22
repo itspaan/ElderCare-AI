@@ -65,7 +65,8 @@ AgentAi/
 ├── tools/
 │   ├── reminders.py              # Medicine reminders (SQLite + JSON export)
 │   ├── contacts.py               # Maker / contact info tool
-│   └── image_storage.py          # Save + index uploaded images
+│   ├── image_storage.py          # Save + index uploaded images
+│   └── survey.py                 # Research survey: consent-gated store + CSV export for retraining
 ├── training/
 │   └── train_model.py            # Trains the Random Forest -> models/disease_model.pkl
 ├── data/
@@ -88,7 +89,7 @@ AgentAi/
 
 ## Key Components
 
-- **API routes (`main.py`):** `GET /` (UI), `POST /api/chat`, `GET /api/health`, `GET /api/reminders`, `GET /api/images`. Images arrive as base64 in the chat request.
+- **API routes (`main.py`):** `GET /` (UI), `POST /api/chat`, `GET /api/health`, `GET /api/reminders`, `GET /api/images`, `POST /api/survey`, `GET /api/survey/stats`, `GET /api/survey/export`. Images arrive as base64 in the chat request.
 - **Agent (`core/agent.py`):** loads `models/disease_model.pkl`, registers tools, creates the Gemini chat session, and exposes `chat_with_agent(user_input, image_bytes, image_mime)`.
 - **ML tool (`predict_disease_from_vitals`):** builds a one-row DataFrame in the trained feature order, returns prediction + confidence + standard advice.
 - **Model artifact:** a pickled dict `{"model": ..., "features": [...]}`. The feature list defines column order at inference — keep training and inference in sync.
@@ -118,6 +119,8 @@ AgentAi/
 
 ## Current Status
 
+> Running, plain-language history of progress: [docs/PROGRESS_LOG.md](docs/PROGRESS_LOG.md) (newest first). Add a dated entry there after finishing a chunk of work.
+
 Done:
 - [x] FastAPI app + chat/reminders/images endpoints (`main.py`)
 - [x] Synthetic dataset generator (`data/generate_dummy.py`)
@@ -131,7 +134,10 @@ Done:
 - [x] Bilingual UI (English / Traditional Chinese zh-TW) with a one-tap language switch, localized starter prompts, and zh-TW TTS/STT
 - [x] Prediction explainability — `predict_disease_from_vitals` returns the top factors that drove the result (perturbation against clinical baselines in `core/agent.py`), and the agent verbalizes them
 
+- [x] Research survey for real labelled data collection — consent-gated `tools/survey.py` (SQLite), `POST /api/survey` + `GET /api/survey/stats` + `GET /api/survey/export` (CSV matching the training columns), and a bilingual consent + form modal in the UI
+
 Next (see PRD roadmap):
+- [ ] Provision a persistent DB for survey data (managed Postgres) before real collection; collect, export, retrain, evaluate, compare (see `docs/DATA_COLLECTION.md`)
 - [ ] Integrate a real dataset (then original Taiwan survey data)
 - [ ] Add more conditions / richer features
 - [ ] Broaden language support (e.g. Taiwanese Hokkien / Hakka) on top of EN + zh-TW

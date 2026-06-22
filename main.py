@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from core.agent import chat_with_agent, model_data
 from tools.reminders import JSON_PATH as REMINDERS_JSON_PATH
 from tools.image_storage import get_all_images, IMAGES_DIR
+from tools.survey import save_survey_response, get_survey_stats, export_survey_csv
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +26,22 @@ class ChatRequest(BaseModel):
     message: str
     image: Optional[str] = None
     image_mime: Optional[str] = None
+
+
+# Research survey submission (real labelled data collection — see
+# docs/DATA_COLLECTION.md). diagnosed_condition is the ground-truth label and
+# must NOT be the model's own prediction.
+class SurveyRequest(BaseModel):
+    age: int
+    systolic_bp: int
+    blood_sugar: int
+    joint_pain: int
+    memory_loss: int
+    fatigue: int
+    diagnosed_condition: str
+    consent: bool
+    label_source: Optional[str] = "self_report"
+    language: Optional[str] = "en"
 
 
 # Menyajikan folder 'static' untuk HTML/CSS/JS
@@ -84,3 +101,39 @@ async def get_reminders_json():
 async def get_images_json():
     """Returns the images database (real-time snapshot)."""
     return JSONResponse(content=get_all_images())
+
+
+@app.post("/api/survey")
+async def submit_survey(request: SurveyRequest):
+    """Store one labelled research record. Persists only if consent is true."""
+    result = save_survey_response(
+        age=request.age,
+        systolic_bp=request.systolic_bp,
+        blood_sugar=request.blood_sugar,
+        joint_pain=request.joint_pain,
+        memory_loss=request.memory_loss,
+        fatigue=request.fatigue,
+        diagnosed_condition=request.diagnosed_condition,
+        consent=request.consent,
+        label_source=request.label_source,
+        language=request.language,
+    )
+    status_code = 200 if result["ok"] else 400
+    return JSONResponse(content=result, status_code=status_code)
+
+
+@app.get("/api/survey/stats")
+async def survey_stats():
+    """Total responses and per-condition breakdown (for monitoring balance)."""
+    return JSONResponse(content=get_survey_stats())
+
+
+@app.get("/api/survey/export")
+async def survey_export():
+    """Export consented responses to a CSV matching the training dataset columns."""
+    csv_path = export_survey_csv()
+    return FileResponse(
+        csv_path,
+        media_type="text/csv",
+        filename="survey_export.csv",
+    )

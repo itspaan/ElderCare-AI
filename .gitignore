@@ -29,3 +29,6 @@ Thumbs.db
 
 # Storage / Database backups
 storage/
+
+# Personal, self-expiring recall note (regenerated on demand, not for the repo)
+recall1dayexpired.md

@@ -506,6 +506,156 @@
         color: white;
       }
 
+      /* Research Survey button (sidebar CTA) */
+      .survey-cta {
+        width: 100%;
+        margin-top: 16px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        border: none;
+        padding: 14px 16px;
+        border-radius: 16px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+        transition: transform 0.1s ease, box-shadow 0.2s ease;
+      }
+      .survey-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(13, 148, 136, 0.35); }
+      .survey-cta:active { transform: scale(0.98); }
+
+      /* Modal overlay */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-overlay.open { display: flex; }
+
+      .modal {
+        background: white;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 520px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease forwards;
+      }
+      .modal-header {
+        padding: 24px 28px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .modal-header h2 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 20px;
+        color: var(--primary-dark);
+      }
+      .modal-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+      .modal-close {
+        background: rgba(0, 0, 0, 0.05);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        cursor: pointer;
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+      .modal-close:hover { background: rgba(0, 0, 0, 0.1); }
+      .modal-body { padding: 8px 28px 28px; }
+
+      /* Consent box */
+      .consent-box {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 14px;
+        padding: 16px;
+        font-size: 13px;
+        line-height: 1.55;
+        color: #78350f;
+        margin-bottom: 20px;
+      }
+      .consent-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .consent-check input { margin-top: 3px; width: 16px; height: 16px; flex-shrink: 0; }
+
+      /* Form fields */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .form-field { display: flex; flex-direction: column; gap: 6px; }
+      .form-field.full { grid-column: 1 / -1; }
+      .form-field label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+      .form-field input,
+      .form-field select {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 14px;
+        padding: 10px 12px;
+        border: 1.5px solid rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        outline: none;
+        background: white;
+        color: var(--text-main);
+      }
+      .form-field input:focus,
+      .form-field select:focus { border-color: var(--primary); }
+      .form-hint { font-size: 11px; color: var(--text-muted); }
+
+      .modal-submit {
+        width: 100%;
+        margin-top: 20px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 14px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+      .modal-submit:hover:not(:disabled) { background: var(--primary-dark); }
+      .modal-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+      .modal-feedback {
+        margin-top: 14px;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+        min-height: 18px;
+      }
+      .modal-feedback.ok { color: var(--primary-dark); }
+      .modal-feedback.err { color: #dc2626; }
+
+      .survey-stats {
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--text-muted);
+        text-align: center;
+        line-height: 1.6;
+      }
+
       /* Mobile Layout Adaptation */
       @media (max-width: 768px) {
         .container {
@@ -566,9 +716,12 @@
           </div>
         </div>
 
-        <div class="status-pulse">
-          <div class="pulse-dot"></div>
-          <span data-i18n="statusActive">Elderly Care Core Active</span>
+        <div>
+          <button class="survey-cta" data-i18n="surveyCta" onclick="openSurvey()">📋 Join the Research Survey</button>
+          <div class="status-pulse" style="margin-top: 16px;">
+            <div class="pulse-dot"></div>
+            <span data-i18n="statusActive">Elderly Care Core Active</span>
+          </div>
         </div>
       </div>
 
@@ -625,6 +778,90 @@
       </div>
     </div>
 
+    <!-- Research Survey Modal -->
+    <div class="modal-overlay" id="survey-modal" onclick="if(event.target===this) closeSurvey()">
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <div>
+            <h2 data-i18n="surveyTitle">Research Survey</h2>
+            <p data-i18n="surveySubtitle">Help improve the screening model with real, labelled data.</p>
+          </div>
+          <button class="modal-close" onclick="closeSurvey()" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="consent-box">
+            <div data-i18n="consentText">This is an academic research study. We collect the health information below to evaluate and improve the screening model. Participation is voluntary, you may stop at any time, and your data is stored without your name. The condition you enter is used as a research label, not a diagnosis.</div>
+            <label class="consent-check">
+              <input type="checkbox" id="consent-check" onchange="updateSubmitState()" />
+              <span data-i18n="consentAgree">I have read the above and consent to take part.</span>
+            </label>
+          </div>
+
+          <form id="survey-form" onsubmit="submitSurvey(event)">
+            <div class="form-grid">
+              <div class="form-field">
+                <label data-i18n="fAge">Age</label>
+                <input type="number" id="s-age" min="40" max="120" required />
+              </div>
+              <div class="form-field">
+                <label data-i18n="fBp">Systolic BP (mmHg)</label>
+                <input type="number" id="s-bp" min="60" max="260" required />
+              </div>
+              <div class="form-field">
+                <label data-i18n="fSugar">Blood Sugar (mg/dL)</label>
+                <input type="number" id="s-sugar" min="40" max="600" required />
+              </div>
+              <div class="form-field">
+                <label data-i18n="fJoint">Joint Pain</label>
+                <select id="s-joint">
+                  <option value="0" data-i18n="optNo">No</option>
+                  <option value="1" data-i18n="optYes">Yes</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label data-i18n="fMemory">Memory Loss</label>
+                <select id="s-memory">
+                  <option value="0" data-i18n="optNo">No</option>
+                  <option value="1" data-i18n="optYes">Yes</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label data-i18n="fFatigue">Fatigue</label>
+                <select id="s-fatigue">
+                  <option value="0" data-i18n="optNo">No</option>
+                  <option value="1" data-i18n="optYes">Yes</option>
+                </select>
+              </div>
+              <div class="form-field full">
+                <label data-i18n="fCondition">Diagnosed Condition (ground-truth label)</label>
+                <select id="s-condition" required>
+                  <option value="" disabled selected data-i18n="optSelect">Select a condition…</option>
+                  <option value="Hypertension" data-i18n="condHypertension">Hypertension</option>
+                  <option value="Diabetes" data-i18n="condDiabetes">Diabetes</option>
+                  <option value="Osteoarthritis" data-i18n="condOsteoarthritis">Osteoarthritis</option>
+                  <option value="Dementia" data-i18n="condDementia">Dementia</option>
+                  <option value="Healthy" data-i18n="condHealthy">Healthy</option>
+                </select>
+                <span class="form-hint" data-i18n="fConditionHint">Use a clinician's diagnosis or medical record where possible — not the app's guess.</span>
+              </div>
+              <div class="form-field full">
+                <label data-i18n="fSource">Source of this diagnosis</label>
+                <select id="s-source">
+                  <option value="clinician" data-i18n="srcClinician">Clinician diagnosis</option>
+                  <option value="medical_record" data-i18n="srcRecord">Medical record</option>
+                  <option value="self_report" selected data-i18n="srcSelf">Self-reported</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="modal-submit" id="survey-submit" disabled data-i18n="surveySubmit">Submit Response</button>
+            <div class="modal-feedback" id="survey-feedback"></div>
+            <div class="survey-stats" id="survey-stats"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script>
       const chatBox = document.getElementById("chat-box");
       const inputField = document.getElementById("user-input");
@@ -652,6 +889,37 @@
           micTitle: "Voice Input",
           imgTitle: "Upload Image (Max 2MB)",
           commError: "I'm sorry, I encountered a communication issue. Please check your network and try again.",
+          surveyCta: "📋 Join the Research Survey",
+          surveyTitle: "Research Survey",
+          surveySubtitle: "Help improve the screening model with real, labelled data.",
+          consentText: "This is an academic research study. We collect the health information below to evaluate and improve the screening model. Participation is voluntary, you may stop at any time, and your data is stored without your name. The condition you enter is used as a research label, not a diagnosis.",
+          consentAgree: "I have read the above and consent to take part.",
+          fAge: "Age",
+          fBp: "Systolic BP (mmHg)",
+          fSugar: "Blood Sugar (mg/dL)",
+          fJoint: "Joint Pain",
+          fMemory: "Memory Loss",
+          fFatigue: "Fatigue",
+          fCondition: "Diagnosed Condition (ground-truth label)",
+          fConditionHint: "Use a clinician's diagnosis or medical record where possible — not the app's guess.",
+          fSource: "Source of this diagnosis",
+          optYes: "Yes",
+          optNo: "No",
+          optSelect: "Select a condition…",
+          condHypertension: "Hypertension",
+          condDiabetes: "Diabetes",
+          condOsteoarthritis: "Osteoarthritis",
+          condDementia: "Dementia",
+          condHealthy: "Healthy",
+          srcClinician: "Clinician diagnosis",
+          srcRecord: "Medical record",
+          srcSelf: "Self-reported",
+          surveySubmit: "Submit Response",
+          surveySubmitting: "Submitting…",
+          surveyThanks: "Thank you! Your response was saved.",
+          surveyConsentNeeded: "Please give consent before submitting.",
+          surveyError: "Could not save your response. Please check the fields and try again.",
+          surveyCount: "Responses collected so far: ",
         },
         zh: {
           brandTagline: "陪伴與健康顧問",
@@ -674,6 +942,37 @@
           micTitle: "語音輸入",
           imgTitle: "上傳圖片（最大 2MB）",
           commError: "抱歉，我遇到了通訊問題。請檢查您的網路後再試一次。",
+          surveyCta: "📋 參加研究問卷",
+          surveyTitle: "研究問卷",
+          surveySubtitle: "提供真實且具標註的資料，協助改善篩檢模型。",
+          consentText: "這是一項學術研究。我們蒐集以下健康資訊，用以評估並改善篩檢模型。參與為自願性質，您可隨時停止，您的資料將以不具姓名的方式儲存。您填寫的疾病僅作為研究標註之用，並非診斷。",
+          consentAgree: "我已閱讀以上說明並同意參與。",
+          fAge: "年齡",
+          fBp: "收縮壓 (mmHg)",
+          fSugar: "血糖 (mg/dL)",
+          fJoint: "關節疼痛",
+          fMemory: "記憶力衰退",
+          fFatigue: "疲倦",
+          fCondition: "已診斷之疾病（真實標註）",
+          fConditionHint: "請盡量採用醫師診斷或病歷資料，而非本應用程式的推測。",
+          fSource: "此診斷的來源",
+          optYes: "是",
+          optNo: "否",
+          optSelect: "請選擇疾病……",
+          condHypertension: "高血壓",
+          condDiabetes: "糖尿病",
+          condOsteoarthritis: "骨關節炎",
+          condDementia: "失智症",
+          condHealthy: "健康",
+          srcClinician: "醫師診斷",
+          srcRecord: "病歷紀錄",
+          srcSelf: "自述",
+          surveySubmit: "送出回覆",
+          surveySubmitting: "送出中……",
+          surveyThanks: "謝謝您！您的回覆已儲存。",
+          surveyConsentNeeded: "送出前請先表示同意。",
+          surveyError: "無法儲存您的回覆。請檢查欄位後再試一次。",
+          surveyCount: "目前已蒐集的回覆數：",
         },
       };
 
@@ -963,6 +1262,85 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#039;");
+      }
+
+      /* ---------------- Research Survey ---------------- */
+      function openSurvey() {
+        document.getElementById("survey-modal").classList.add("open");
+        refreshSurveyStats();
+      }
+
+      function closeSurvey() {
+        document.getElementById("survey-modal").classList.remove("open");
+      }
+
+      function updateSubmitState() {
+        const consented = document.getElementById("consent-check").checked;
+        document.getElementById("survey-submit").disabled = !consented;
+      }
+
+      async function refreshSurveyStats() {
+        try {
+          const res = await fetch("/api/survey/stats");
+          const data = await res.json();
+          document.getElementById("survey-stats").textContent = t("surveyCount") + data.total;
+        } catch (e) {
+          document.getElementById("survey-stats").textContent = "";
+        }
+      }
+
+      async function submitSurvey(event) {
+        event.preventDefault();
+        const feedback = document.getElementById("survey-feedback");
+        const submitBtn = document.getElementById("survey-submit");
+
+        if (!document.getElementById("consent-check").checked) {
+          feedback.className = "modal-feedback err";
+          feedback.textContent = t("surveyConsentNeeded");
+          return;
+        }
+
+        const payload = {
+          age: parseInt(document.getElementById("s-age").value, 10),
+          systolic_bp: parseInt(document.getElementById("s-bp").value, 10),
+          blood_sugar: parseInt(document.getElementById("s-sugar").value, 10),
+          joint_pain: parseInt(document.getElementById("s-joint").value, 10),
+          memory_loss: parseInt(document.getElementById("s-memory").value, 10),
+          fatigue: parseInt(document.getElementById("s-fatigue").value, 10),
+          diagnosed_condition: document.getElementById("s-condition").value,
+          label_source: document.getElementById("s-source").value,
+          consent: true,
+          language: currentLang === "zh" ? "zh-TW" : "en",
+        };
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = t("surveySubmitting");
+        feedback.textContent = "";
+
+        try {
+          const res = await fetch("/api/survey", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (res.ok && data.ok) {
+            feedback.className = "modal-feedback ok";
+            feedback.textContent = t("surveyThanks");
+            document.getElementById("survey-form").reset();
+            document.getElementById("consent-check").checked = false;
+            refreshSurveyStats();
+          } else {
+            feedback.className = "modal-feedback err";
+            feedback.textContent = (data && data.message) ? data.message : t("surveyError");
+          }
+        } catch (e) {
+          feedback.className = "modal-feedback err";
+          feedback.textContent = t("surveyError");
+        } finally {
+          submitBtn.textContent = t("surveySubmit");
+          updateSubmitState();
+        }
       }
 
       // Apply the saved (or default) language once the page is ready.
